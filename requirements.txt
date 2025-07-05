@@ -1,0 +1,8 @@
+openai
+langchain
+langgraph
+gradio
+pymongo
+python-dotenv
+langchain-community
+presidio_analyzer
