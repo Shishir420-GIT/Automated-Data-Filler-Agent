@@ -9,9 +9,25 @@ from typing import Dict, Any
 # Load environment variables
 load_dotenv()
 
-# Initialize ChatOpenAI with updated import
+# Initialize ChatOpenAI with updated import and error handling
 model_name = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-llm = ChatOpenAI(model=model_name, temperature=0)
+
+# Check if OpenAI API key is available
+openai_api_key = os.getenv("OPENAI_API_KEY")
+if not openai_api_key:
+    print("Warning: OPENAI_API_KEY not found in environment variables")
+    llm = None
+else:
+    try:
+        llm = ChatOpenAI(
+            model=model_name, 
+            temperature=0,
+            openai_api_key=openai_api_key
+        )
+        print(f"✅ ChatOpenAI initialized with model: {model_name}")
+    except Exception as e:
+        print(f"❌ Failed to initialize ChatOpenAI: {e}")
+        llm = None
 
 # Improved prompt template for more reliable JSON extraction
 template = '''
@@ -51,11 +67,24 @@ Meeting Summary:
 {text}
 '''
 
-prompt = PromptTemplate(template=template, input_variables=["text"])
-chain = LLMChain(llm=llm, prompt=prompt)
+# Initialize chain only if LLM is available
+if llm:
+    prompt = PromptTemplate(template=template, input_variables=["text"])
+    chain = LLMChain(llm=llm, prompt=prompt)
+else:
+    prompt = None
+    chain = None
 
 def extract_entities(text: str) -> Dict[str, Any]:
     """Extract CRM entities and return JSON dict, or error dict on failure."""
+    if not chain or not llm:
+        return {
+            "error": "OpenAI not configured. Please check OPENAI_API_KEY environment variable.",
+            "contact": {},
+            "company": {},
+            "deal": {}
+        }
+    
     try:
         print(f"Extracting entities from text: {text[:100]}...")
         response = chain.run(text=text)
