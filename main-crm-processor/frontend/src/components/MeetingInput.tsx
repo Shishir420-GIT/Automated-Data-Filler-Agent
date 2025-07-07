@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Sparkles, Clock, Users, AlertCircle } from 'lucide-react';
+import { FileText, Sparkles, Clock, Users, AlertCircle, Loader2 } from 'lucide-react';
 
 interface MeetingInputProps {
   onProcessMeeting: (summary: string) => void;
@@ -66,6 +66,20 @@ export const MeetingInput: React.FC<MeetingInputProps> = ({
         </div>
       )}
 
+      {isProcessing && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center space-x-3">
+            <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+            <div>
+              <p className="text-blue-700 font-medium">Processing Meeting Summary</p>
+              <p className="text-blue-600 text-sm">
+                AI is analyzing your meeting notes... This may take 30-60 seconds.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -80,6 +94,7 @@ export const MeetingInput: React.FC<MeetingInputProps> = ({
               rows={12}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
               required
+              disabled={isProcessing}
             />
           </div>
 
@@ -87,7 +102,7 @@ export const MeetingInput: React.FC<MeetingInputProps> = ({
             <div className="flex items-center space-x-4 text-sm text-gray-500">
               <div className="flex items-center space-x-1">
                 <Clock className="w-4 h-4" />
-                <span>~2-5 seconds</span>
+                <span>~30-60 seconds</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Users className="w-4 h-4" />
@@ -102,7 +117,7 @@ export const MeetingInput: React.FC<MeetingInputProps> = ({
             >
               {isProcessing ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Processing...
                 </>
               ) : (
@@ -123,7 +138,8 @@ export const MeetingInput: React.FC<MeetingInputProps> = ({
             <button
               key={index}
               onClick={() => handleExampleSelect(example.content)}
-              className="text-left p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 group"
+              disabled={isProcessing}
+              className="text-left p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <h4 className="font-medium text-gray-900 mb-2 group-hover:text-blue-600">
                 {example.title}

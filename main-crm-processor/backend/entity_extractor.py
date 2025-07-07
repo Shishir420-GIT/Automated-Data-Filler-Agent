@@ -5,6 +5,7 @@ from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from typing import Dict, Any
+import time
 
 # Load environment variables
 load_dotenv()
@@ -22,7 +23,9 @@ else:
         llm = ChatOpenAI(
             model=model_name, 
             temperature=0,
-            openai_api_key=openai_api_key
+            openai_api_key=openai_api_key,
+            request_timeout=60,  # 60 second timeout for OpenAI requests
+            max_retries=2
         )
         print(f"✅ ChatOpenAI initialized with model: {model_name}")
     except Exception as e:
@@ -86,8 +89,13 @@ def extract_entities(text: str) -> Dict[str, Any]:
         }
     
     try:
-        print(f"Extracting entities from text: {text[:100]}...")
+        print(f"🔍 Extracting entities from text: {text[:100]}...")
+        start_time = time.time()
+        
         response = chain.run(text=text)
+        
+        end_time = time.time()
+        print(f"⏱️ OpenAI processing took {end_time - start_time:.2f} seconds")
         
         # Clean the response - remove any markdown formatting or extra text
         response = response.strip()
@@ -97,7 +105,7 @@ def extract_entities(text: str) -> Dict[str, Any]:
             response = response[:-3]
         response = response.strip()
         
-        print(f"Raw LLM response: {response}")
+        print(f"📝 Raw LLM response: {response}")
         
         # Parse JSON
         parsed_data = json.loads(response)
@@ -108,11 +116,11 @@ def extract_entities(text: str) -> Dict[str, Any]:
             if key not in parsed_data:
                 parsed_data[key] = {}
         
-        print(f"Successfully extracted entities: {parsed_data}")
+        print(f"✅ Successfully extracted entities: {parsed_data}")
         return parsed_data
         
     except json.JSONDecodeError as e:
-        print(f"JSON parsing error: {e}")
+        print(f"❌ JSON parsing error: {e}")
         print(f"Raw response: {response}")
         return {
             "error": f"Invalid JSON response: {str(e)}", 
@@ -122,7 +130,7 @@ def extract_entities(text: str) -> Dict[str, Any]:
             "deal": {}
         }
     except Exception as e:
-        print(f"Extraction error: {e}")
+        print(f"❌ Extraction error: {e}")
         return {
             "error": f"Extraction failed: {str(e)}",
             "contact": {},
@@ -161,5 +169,5 @@ def calculate_confidence(extracted_data: Dict[str, Any]) -> float:
     
     # Calculate confidence (minimum 0.1 to avoid 0 confidence)
     confidence = max(0.1, filled_fields / total_fields if total_fields > 0 else 0.1)
-    print(f"Confidence calculation: {filled_fields}/{total_fields} = {confidence}")
+    print(f"📊 Confidence calculation: {filled_fields}/{total_fields} = {confidence}")
     return round(confidence, 2)

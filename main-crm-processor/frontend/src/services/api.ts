@@ -8,7 +8,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 second timeout
+  timeout: 60000, // Increased to 60 seconds for AI processing
 });
 
 // Add request interceptor for debugging
@@ -30,19 +30,30 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    if (error.code === 'ECONNABORTED') {
+      console.error('Request timeout - the server is taking too long to respond');
+      return Promise.reject(new Error('Request timeout - please try again'));
+    }
     console.error('Response error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
 
 export const apiService = {
-  // Process meeting summary
+  // Process meeting summary with extended timeout
   processMeeting: async (request: ProcessingRequest): Promise<ProcessingResponse> => {
     try {
-      const response = await api.post('/api/process', request);
+      console.log('🚀 Starting meeting processing...');
+      const response = await api.post('/api/process', request, {
+        timeout: 90000, // 90 seconds for AI processing
+      });
+      console.log('✅ Meeting processing completed');
       return response.data;
     } catch (error: any) {
-      console.error('Process meeting error:', error);
+      console.error('❌ Process meeting error:', error);
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Processing timeout - the AI is taking longer than expected. Please try again.');
+      }
       throw new Error(error.response?.data?.detail || error.message || 'Failed to process meeting');
     }
   },
@@ -84,7 +95,7 @@ export const apiService = {
   // Health check
   healthCheck: async (): Promise<{ message: string; status: string }> => {
     try {
-      const response = await api.get('/');
+      const response = await api.get('/', { timeout: 10000 }); // 10 second timeout for health check
       return response.data;
     } catch (error: any) {
       console.error('Health check error:', error);
