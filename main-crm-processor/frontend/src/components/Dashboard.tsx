@@ -33,9 +33,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNewMeeting }) => {
         apiService.getStats()
       ]);
       
-      setLeads(leadsResponse.leads);
-      setStats(statsResponse);
-    } catch (err) {
+      setLeads(leadsResponse.leads || []);
+      setStats(statsResponse || { total_leads: 0, total_deals: 0, total_value: 0 });
+    } catch (err: any) {
       setError('Failed to load dashboard data');
       console.error('Dashboard error:', err);
     } finally {
@@ -96,7 +96,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNewMeeting }) => {
   }
 
   const avgConfidence = leads.length > 0 
-    ? leads.reduce((sum, lead) => sum + lead.confidence, 0) / leads.length
+    ? leads.reduce((sum, lead) => sum + (lead.confidence || 0), 0) / leads.length
     : 0;
 
   return (
@@ -164,7 +164,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNewMeeting }) => {
             <div>
               <p className="text-sm font-medium text-gray-600">Total Value</p>
               <p className="text-2xl font-bold text-gray-900">
-                ${stats.total_value.toLocaleString()}
+                ${(stats.total_value || 0).toLocaleString()}
               </p>
             </div>
             <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg">
@@ -200,41 +200,53 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNewMeeting }) => {
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Meetings</h3>
         <div className="space-y-4">
-          {leads.slice(0, 5).map((lead, index) => (
-            <div key={index} className="border-l-4 border-blue-500 pl-4 py-3 border border-gray-100 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {lead.contact.name || lead.company.name || 'New Lead'}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(lead.processed_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-                    {Math.round(lead.confidence * 100)}% confidence
-                  </span>
-                  {lead.deal.value && (
-                    <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                      ${lead.deal.value}
+          {leads.slice(0, 5).map((lead, index) => {
+            // Safe access to nested properties with fallbacks
+            const contactName = lead.contact?.name || null;
+            const companyName = lead.company?.name || null;
+            const dealValue = lead.deal?.value || null;
+            const dealStage = lead.deal?.stage || null;
+            const confidence = lead.confidence || 0;
+            const processedAt = lead.processed_at || lead.created_at || new Date().toISOString();
+            
+            const displayName = contactName || companyName || 'New Lead';
+            
+            return (
+              <div key={index} className="border-l-4 border-blue-500 pl-4 py-3 border border-gray-100 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {displayName}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(processedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                      {Math.round(confidence * 100)}% confidence
                     </span>
-                  )}
+                    {dealValue && (
+                      <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                        ${dealValue}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-2 grid grid-cols-3 gap-4 text-xs text-gray-600">
+                  <div>
+                    <span className="font-medium">Contact:</span> {contactName || 'N/A'}
+                  </div>
+                  <div>
+                    <span className="font-medium">Company:</span> {companyName || 'N/A'}
+                  </div>
+                  <div>
+                    <span className="font-medium">Stage:</span> {dealStage || 'N/A'}
+                  </div>
                 </div>
               </div>
-              <div className="mt-2 grid grid-cols-3 gap-4 text-xs text-gray-600">
-                <div>
-                  <span className="font-medium">Contact:</span> {lead.contact.name || 'N/A'}
-                </div>
-                <div>
-                  <span className="font-medium">Company:</span> {lead.company.name || 'N/A'}
-                </div>
-                <div>
-                  <span className="font-medium">Stage:</span> {lead.deal.stage || 'N/A'}
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

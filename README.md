@@ -1,232 +1,273 @@
-# Automated-Data-Filler-Agent
+# CRM Lead Processor - AI-Powered Meeting Analysis
 
-## Table of Contents
+A modern full-stack application that uses AI to extract contact, company, and deal information from meeting summaries. Built with React frontend and FastAPI backend.
 
-* [Overview](#overview)
-* [Features](#features)
-* [Tech Stack](#tech-stack)
-* [Prerequisites](#prerequisites)
-* [Installation](#installation)
-* [Configuration](#configuration)
-* [Usage](#usage)
-  * [Gradio Web UI](#gradio-web-ui)
-  * [Python API / CLI](#python-api--cli)
-  * [Standalone Modules](#standalone-modules)
-* [Modules and Architecture](#modules-and-architecture)
-* [Environment Variables](#environment-variables)
-* [Database Setup](#database-setup)
-* [Dependency Management](#dependency-management)
-* [Logging and Debugging](#logging-and-debugging)
-* [Testing](#testing)
-* [Deployment](#deployment)
-  * [Docker (Optional)](#docker-optional)
-* [Contributing](#contributing)
-* [License](#license)
+## 🚀 Features
+
+- **AI-Powered Extraction**: Uses OpenAI GPT models to extract structured CRM data
+- **PII Detection**: Identifies and extracts personally identifiable information
+- **Real-time Processing**: Fast API responses with confidence scoring (30-60 seconds)
+- **Modern UI**: Clean, responsive React interface with Tailwind CSS
+- **Data Persistence**: MongoDB integration for storing leads
+- **Export Capabilities**: Download data as CSV or JSON
+- **Dashboard Analytics**: View statistics and insights
+- **SSL Support**: Works with MongoDB Atlas and local MongoDB instances
+
+## 🏗️ Architecture
+
+```
+main-crm-processor/
+├── backend/           # FastAPI Python backend
+│   ├── main.py       # API server with CORS and error handling
+│   ├── models.py     # Pydantic models for data validation
+│   ├── database.py   # MongoDB integration with SSL support
+│   ├── processor.py  # Core processing logic
+│   ├── entity_extractor.py  # OpenAI integration with timeout handling
+│   └── pii_detector.py      # PII detection using Presidio
+└── frontend/         # React TypeScript frontend
+    ├── src/
+    │   ├── components/   # React components
+    │   ├── services/     # API client with timeout handling
+    │   └── types/        # TypeScript types
+    └── package.json
+```
+
+## 🛠️ Quick Start
+
+### Prerequisites
+
+- **Python 3.8+**
+- **Node.js 16+**
+- **MongoDB** (local or Atlas)
+- **OpenAI API key** with GPT model access
+
+### 1. Backend Setup
+
+```bash
+cd main-crm-processor/backend
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+```
+
+**Edit `.env` file:**
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+MONGO_URI=mongodb://localhost:27017/crm  # or MongoDB Atlas URI
+OPENAI_MODEL=gpt-4o-mini  # Optional, defaults to gpt-4o-mini
+```
+
+**Start the backend:**
+```bash
+python run.py
+```
+
+✅ API will be available at `http://localhost:8000`
+
+### 2. Frontend Setup
+
+```bash
+cd main-crm-processor/frontend
+
+# Install dependencies
+npm install
+
+# Create environment file (optional)
+cp .env.example .env
+```
+
+**Edit `.env` file (optional):**
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+**Start the frontend:**
+```bash
+npm run dev
+```
+
+✅ Frontend will be available at `http://localhost:5173`
+
+## 🔧 Configuration
+
+### MongoDB Setup Options
+
+**Option 1: Local MongoDB**
+```bash
+# Install MongoDB and start service
+mongod
+# Use: mongodb://localhost:27017/crm
+```
+
+**Option 2: MongoDB Atlas (Recommended)**
+1. Create a free cluster at [MongoDB Atlas](https://cloud.mongodb.com)
+2. Get connection string (includes SSL configuration)
+3. Add to `MONGO_URI` in backend `.env`
+
+### Environment Variables
+
+**Backend (.env)**
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/crm
+OPENAI_MODEL=gpt-4o-mini
+```
+
+**Frontend (.env) - Optional**
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+## 📡 API Endpoints
+
+| Method | Endpoint | Description | Timeout |
+|--------|----------|-------------|---------|
+| `GET` | `/` | Health check | 10s |
+| `POST` | `/api/process` | Process meeting summary | 90s |
+| `GET` | `/api/leads` | Get all stored leads | 60s |
+| `GET` | `/api/stats` | Get aggregated statistics | 60s |
+| `DELETE` | `/api/leads` | Clear all leads (testing) | 60s |
+
+## 🧪 Testing
+
+### Test the API directly:
+
+```bash
+curl -X POST "http://localhost:8000/api/process" \
+  -H "Content-Type: application/json" \
+  -d '{"summary": "Met with John Doe from TechCorp about a $50K deal"}'
+```
+
+### Example Meeting Summary:
+
+```
+Had a call with Sarah Johnson, Marketing Director at GrowthTech Solutions. 
+They need marketing automation for their 50-person team. Budget is around $30K annually. 
+Currently evaluating HubSpot vs our solution. Next step: Demo scheduled for Friday. 
+Sarah has decision-making authority. Company is growing fast, currently using manual processes.
+```
+
+## 🔍 Key Features Explained
+
+### AI Processing Pipeline
+
+1. **PII Detection**: Uses Microsoft Presidio to identify sensitive information
+2. **Entity Extraction**: OpenAI GPT extracts structured contact/company/deal data
+3. **Confidence Scoring**: Calculates extraction quality based on completeness
+4. **Data Normalization**: Ensures consistent schema across all records
+5. **Timeout Handling**: 60-90 second timeouts for AI processing
+
+### Frontend Components
+
+- **MeetingInput**: Text input with examples and processing controls
+- **ProcessingResults**: Displays extracted data with export options
+- **Dashboard**: Analytics view with statistics and recent activity
+- **Navigation**: Seamless switching between views
+- **Error Handling**: Comprehensive error states and retry mechanisms
+
+### Backend Architecture
+
+- **FastAPI**: Modern, fast web framework with automatic API docs
+- **Pydantic**: Data validation and serialization
+- **MongoDB**: Document storage with SSL support for Atlas
+- **LangChain**: OpenAI integration with prompt management
+- **Presidio**: PII detection and extraction
+
+## 🚀 Deployment
+
+### Using Docker Compose
+
+```bash
+# Copy environment file
+cp .env.example .env
+# Edit .env with your credentials
+
+# Start all services
+docker-compose up -d
+```
+
+### Production Considerations
+
+- ✅ SSL certificate handling for MongoDB Atlas
+- ✅ Extended timeouts for AI processing
+- ✅ CORS configuration for production domains
+- ✅ Error handling and retry mechanisms
+- ✅ Environment variable validation
+- ✅ Connection health checks
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**1. MongoDB SSL Certificate Error**
+```
+[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed
+```
+**Solution**: The app automatically handles SSL certificates for MongoDB Atlas. If issues persist, check your connection string.
+
+**2. API Timeout Errors**
+```
+Request timeout - the server is taking too long to respond
+```
+**Solution**: AI processing takes 30-60 seconds. The frontend automatically handles this with extended timeouts.
+
+**3. OpenAI API Errors**
+```
+OpenAI not configured. Please check OPENAI_API_KEY
+```
+**Solution**: 
+- Verify `OPENAI_API_KEY` is correct in `.env`
+- Check API quota and billing
+- Ensure model access permissions
+
+**4. CORS Issues**
+```
+Access to fetch blocked by CORS policy
+```
+**Solution**: Backend includes comprehensive CORS settings. Ensure frontend runs on port 5173.
+
+**5. Dashboard Loading Errors**
+```
+Cannot read properties of undefined
+```
+**Solution**: Fixed with safe property access and fallback values.
+
+### Getting Help
+
+- 📖 Check API documentation at `http://localhost:8000/docs`
+- 🔍 Review console logs for detailed error messages
+- ✅ Ensure all environment variables are set correctly
+- 🔄 Use the retry buttons in the UI for temporary issues
+
+## 📊 Performance
+
+- **Processing Time**: 30-60 seconds for AI extraction
+- **API Timeout**: 90 seconds for processing, 60 seconds for other operations
+- **Database**: Optimized queries with proper indexing
+- **Frontend**: Responsive design with loading states
+
+## 📄 License
+
+MIT License - see LICENSE file for details
 
 ---
 
-## Overview
+## 🎯 Quick Verification
 
-A Python-based tool that automates the extraction of contact, company, and deal information from meeting summaries, detects sensitive PII, and stores leads in a MongoDB database. It provides both a user-friendly Gradio web interface and programmatic access via Python functions.
+After setup, verify everything works:
 
-## Features
+1. ✅ Backend starts without errors
+2. ✅ Frontend connects to API
+3. ✅ MongoDB connection established
+4. ✅ Process a test meeting summary
+5. ✅ View results in dashboard
+6. ✅ Export data as CSV/JSON
 
-* **PII Detection:** Leverages Microsoft Presidio to identify PII spans in text.
-* **Entity Extraction:** Uses OpenAI via LangChain to extract structured JSON for contact, company, and deal data.
-* **Normalization:** Converts raw extraction output into a consistent schema.
-* **Persistence:** Saves and retrieves leads in MongoDB.
-* **Interactive UI:** Gradio dashboard for processing summaries and viewing stored leads.
-* **Flexible API:** Importable Python modules for custom integrations.
-
-## Tech Stack
-
-* **Language:** Python 3.8+
-* **AI & LLM:** OpenAI (via LangChain & langchain-community)
-* **PII Detection:** Microsoft Presidio Analyzer
-* **Database:** MongoDB (PyMongo)
-* **UI:** Gradio
-* **Config Management:** python-dotenv
-
-## Prerequisites
-
-* Python 3.8 or higher
-* A MongoDB instance (local or Atlas)
-* OpenAI API key with access to GPT models
-* (Optional) Docker for containerized deployment
-
-## Installation
-
-1. **Clone the repository**
-
-   ```bash
-   git clone <repo-url>
-   cd project
-   ```
-2. **Create and activate a virtual environment**
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate   # On Windows: venv\Scripts\activate
-   ```
-3. **Install dependencies**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Configuration
-
-1. **Copy the example environment file**
-
-   ```bash
-   cp .example.env .env
-   ```
-2. **Edit `.env`**
-
-   ```ini
-   OPENAI_API_KEY="your_openai_api_key"
-   MONGO_URI="your_mongodb_connection_uri"
-   OPENAI_MODEL="gpt-4o-mini"  # Optional (defaults to gpt-4o-mini)
-   ```
-
-## Usage
-
-### Gradio Web UI
-
-Run the web interface:
-
-```bash
-python app.py
-```
-
-Open your browser at `http://localhost:7860`.
-
-* Paste or type a meeting summary and click **Process & Save Lead**.
-* View extracted data and stored leads side by side.
-
-### Python API / CLI
-
-Use the core processing function in your own code or scripts:
-
-```python
-from agent_flow import run_agent
-
-summary = (
-    "Met with Jane Doe from Acme Corp. "
-    "Discussed a potential $50K deal. "
-    "Jane's email is jane.doe@example.com."
-)
-
-processed_data, all_leads = run_agent(summary)
-print(processed_data)
-print(all_leads)
-```
-
-### Standalone Modules
-
-* **Entity Extraction**:
-
-  ```python
-  from extractor import extract_entities
-  result = extract_entities("Meeting summary text...")
-  ```
-* **PII Detection**:
-
-  ```python
-  from pii_detector import detect_pii
-  pii_spans = detect_pii("Contact at john.doe@example.com")
-  ```
-
-## Modules and Architecture
-
-* **`agent_flow.py`**: Orchestrates the end-to-end flow:
-
-  1. `detect_pii()`
-  2. `extract_entities()`
-  3. `normalize_schema()`
-  4. `save_lead()` & `get_leads()`
-
-  Exports:
-
-  * `process_meeting_summary(summary: str) -> dict`
-  * `run_agent(summary: str) -> Tuple[dict, list]`
-
-* **`extractor.py`**: Defines `extract_entities(text: str) -> dict` with a LangChain LLMChain and prompt template to return valid JSON.
-
-* **`pii_detector.py`**: Provides `detect_pii(text: str) -> List[dict]` using Presidio Analyzer.
-
-* **`db.py`**: Manages MongoDB connection and CRUD:
-
-  * `save_lead(data: dict) -> str`
-  * `get_leads() -> list`
-
-* **`app.py`**: Builds the Gradio UI and wires up `run_agent()` to front-end components.
-
-## Environment Variables
-
-| Key              | Description                                | Required |
-| ---------------- | ------------------------------------------ | -------- |
-| `OPENAI_API_KEY` | API key for OpenAI services                | Yes      |
-| `MONGO_URI`      | MongoDB connection URI                     | Yes      |
-| `OPENAI_MODEL`   | OpenAI model name (default: `gpt-4o-mini`) | No       |
-
-## Database Setup
-
-* **Local**: Install MongoDB and run `mongod` service.
-* **MongoDB Atlas**: Create a free cluster, whitelist your IP, and obtain the connection string.
-
-## Dependency Management
-
-* All Python dependencies are listed in `requirements.txt`.
-* To update dependencies:
-
-  ```bash
-  pip freeze > requirements.txt
-  ```
-
-## Logging and Debugging
-
-* Modules print status messages to the console (e.g., PII detection, DB connection).
-* Warnings are shown if `MONGO_URI` or `OPENAI_API_KEY` are missing or invalid.
-
-## Testing
-
-*No automated tests included.*
-
-
-## Deployment
-
-### Docker (Optional)
-
-Create a `Dockerfile`:
-
-```dockerfile
-FROM python:3.9-slim
-WORKDIR /app
-COPY . .
-RUN pip install -r requirements.txt
-CMD ["python", "app.py"]
-```
-
-Build and run:
-
-```bash
-docker build -t crm-lead-processor .
-docker run -d \
-  -e OPENAI_API_KEY=your_api_key \
-  -e MONGO_URI=your_mongo_uri \
-  -p 7860:7860 \
-  crm-lead-processor
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/my-feature`)
-3. Commit your changes (`git commit -m "Add new feature"`)
-4. Push to the branch (`git push origin feature/my-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+**Need help?** Check the troubleshooting section above or review the console logs for specific error messages.

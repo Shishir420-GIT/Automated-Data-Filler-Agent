@@ -12,7 +12,7 @@ import {
   Globe,
   Target,
   Plus,
-  Shield
+  Eye
 } from 'lucide-react';
 import type { ProcessingResponse } from '../types/api';
 
@@ -116,19 +116,19 @@ export const ProcessingResults: React.FC<ProcessingResultsProps> = ({
         </div>
       </div>
 
-      {/* PII Detection Results */}
+      {/* PII Detection Results - Show as informational, not warning */}
       {data.pii && data.pii.length > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6 mb-8">
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8">
           <div className="flex items-center space-x-3 mb-4">
-            <Shield className="w-5 h-5 text-orange-600" />
-            <h3 className="text-lg font-semibold text-orange-900">PII Detected</h3>
+            <Eye className="w-5 h-5 text-blue-600" />
+            <h3 className="text-lg font-semibold text-blue-900">Personal Information Detected</h3>
           </div>
-          <p className="text-orange-800 mb-3">
-            Found {data.pii.length} potentially sensitive information items. Please review before sharing.
+          <p className="text-blue-800 mb-3">
+            Successfully identified {data.pii.length} pieces of personal information for CRM processing.
           </p>
           <div className="flex flex-wrap gap-2">
             {data.pii.map((item, index) => (
-              <span key={index} className="px-3 py-1 bg-orange-100 text-orange-800 text-sm rounded-full">
+              <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
                 {item.entity} ({Math.round(item.score * 100)}%)
               </span>
             ))}
