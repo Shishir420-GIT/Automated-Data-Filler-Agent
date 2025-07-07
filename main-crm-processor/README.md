@@ -15,7 +15,7 @@ A modern full-stack application that uses AI to extract contact, company, and de
 ## 🏗️ Architecture
 
 ```
-crm-processor/
+main-crm-processor/
 ├── backend/           # FastAPI Python backend
 │   ├── main.py       # API server
 │   ├── models.py     # Pydantic models
@@ -31,7 +31,7 @@ crm-processor/
     └── package.json
 ```
 
-## 🛠️ Setup Instructions
+## 🛠️ Quick Start
 
 ### Prerequisites
 
@@ -40,57 +40,43 @@ crm-processor/
 - MongoDB (local or Atlas)
 - OpenAI API key
 
-### Backend Setup
+### 1. Backend Setup
 
-1. **Navigate to backend directory**
-   ```bash
-   cd crm-processor/backend
-   ```
+```bash
+cd main-crm-processor/backend
 
-2. **Create virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Install dependencies
+pip install -r requirements.txt
 
-4. **Configure environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your credentials:
-   # OPENAI_API_KEY=your_openai_key
-   # MONGO_URI=your_mongodb_uri
-   ```
+# Configure environment
+cp .env.example .env
+# Edit .env with your credentials:
+# OPENAI_API_KEY=your_openai_key
+# MONGO_URI=your_mongodb_uri
 
-5. **Start the backend server**
-   ```bash
-   python run.py
-   ```
-   
-   The API will be available at `http://localhost:8000`
+# Start the backend server
+python run.py
+```
 
-### Frontend Setup
+The API will be available at `http://localhost:8000`
 
-1. **Navigate to frontend directory**
-   ```bash
-   cd crm-processor/frontend
-   ```
+### 2. Frontend Setup
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+```bash
+cd main-crm-processor/frontend
 
-3. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-   
-   The frontend will be available at `http://localhost:5173`
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+The frontend will be available at `http://localhost:5173`
 
 ## 🔧 Configuration
 
@@ -101,6 +87,11 @@ crm-processor/
 OPENAI_API_KEY=your_openai_api_key
 MONGO_URI=mongodb://localhost:27017/crm  # or MongoDB Atlas URI
 OPENAI_MODEL=gpt-4o-mini  # Optional, defaults to gpt-4o-mini
+```
+
+**Frontend (.env)**
+```env
+VITE_API_BASE_URL=http://localhost:8000
 ```
 
 ### MongoDB Setup
@@ -114,7 +105,7 @@ mongod
 **MongoDB Atlas:**
 1. Create a free cluster at [MongoDB Atlas](https://cloud.mongodb.com)
 2. Get connection string
-3. Add to MONGO_URI in .env
+3. Add to MONGO_URI in backend .env
 
 ## 📡 API Endpoints
 
@@ -168,16 +159,15 @@ Sarah has decision-making authority. Company is growing fast, currently using ma
 
 ## 🚀 Deployment
 
-### Docker Deployment (Optional)
+### Using Docker Compose
 
-```dockerfile
-# Backend Dockerfile
-FROM python:3.9-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-CMD ["python", "run.py"]
+```bash
+# Copy environment file
+cp .env.example .env
+# Edit .env with your credentials
+
+# Start all services
+docker-compose up -d
 ```
 
 ### Production Considerations
@@ -187,18 +177,6 @@ CMD ["python", "run.py"]
 - Configure CORS for production domains
 - Use production MongoDB cluster
 - Implement rate limiting and authentication
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-MIT License - see LICENSE file for details
 
 ## 🆘 Troubleshooting
 
@@ -228,3 +206,7 @@ MIT License - see LICENSE file for details
 - Check the API documentation at `http://localhost:8000/docs`
 - Review console logs for detailed error messages
 - Ensure all environment variables are set correctly
+
+## 📄 License
+
+MIT License - see LICENSE file for details

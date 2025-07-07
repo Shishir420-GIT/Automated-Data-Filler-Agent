@@ -1,7 +1,7 @@
 import os
 import json
 from dotenv import load_dotenv
-from langchain_community.chat_models.openai import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from typing import Dict, Any
@@ -9,7 +9,7 @@ from typing import Dict, Any
 # Load environment variables
 load_dotenv()
 
-# Initialize ChatOpenAI
+# Initialize ChatOpenAI with updated import
 model_name = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 llm = ChatOpenAI(model=model_name, temperature=0)
 
@@ -57,6 +57,7 @@ chain = LLMChain(llm=llm, prompt=prompt)
 def extract_entities(text: str) -> Dict[str, Any]:
     """Extract CRM entities and return JSON dict, or error dict on failure."""
     try:
+        print(f"Extracting entities from text: {text[:100]}...")
         response = chain.run(text=text)
         
         # Clean the response - remove any markdown formatting or extra text
@@ -67,6 +68,8 @@ def extract_entities(text: str) -> Dict[str, Any]:
             response = response[:-3]
         response = response.strip()
         
+        print(f"Raw LLM response: {response}")
+        
         # Parse JSON
         parsed_data = json.loads(response)
         
@@ -76,6 +79,7 @@ def extract_entities(text: str) -> Dict[str, Any]:
             if key not in parsed_data:
                 parsed_data[key] = {}
         
+        print(f"Successfully extracted entities: {parsed_data}")
         return parsed_data
         
     except json.JSONDecodeError as e:
@@ -107,7 +111,7 @@ def calculate_confidence(extracted_data: Dict[str, Any]) -> float:
     contact_fields = ["name", "title", "email", "phone"]
     for field in contact_fields:
         total_fields += 1
-        if contact.get(field) and contact[field] != "null":
+        if contact.get(field) and contact[field] != "null" and contact[field] is not None:
             filled_fields += 1
     
     # Check company fields
@@ -115,7 +119,7 @@ def calculate_confidence(extracted_data: Dict[str, Any]) -> float:
     company_fields = ["name", "industry", "size", "budget"]
     for field in company_fields:
         total_fields += 1
-        if company.get(field) and company[field] != "null":
+        if company.get(field) and company[field] != "null" and company[field] is not None:
             filled_fields += 1
     
     # Check deal fields
@@ -123,9 +127,10 @@ def calculate_confidence(extracted_data: Dict[str, Any]) -> float:
     deal_fields = ["value", "stage", "timeline", "competitor", "next_action"]
     for field in deal_fields:
         total_fields += 1
-        if deal.get(field) and deal[field] != "null":
+        if deal.get(field) and deal[field] != "null" and deal[field] is not None:
             filled_fields += 1
     
     # Calculate confidence (minimum 0.1 to avoid 0 confidence)
     confidence = max(0.1, filled_fields / total_fields if total_fields > 0 else 0.1)
+    print(f"Confidence calculation: {filled_fields}/{total_fields} = {confidence}")
     return round(confidence, 2)
